@@ -7,15 +7,15 @@ def create_graph(mode, size, max_resistance, max_power):
     match mode:
         case "e":
             G = nx.erdos_renyi_graph(size,0.5)
-        case "c":
-            G = nx.cubical_graph(size,0.5)
+        case "ws":
+            G = nx.watts_strogatz_graph(size, 10,0.5)
 
     circuit = (np.random.randint(0,size//2), np.random.randint(size//2+1, size), np.random.randint(1, max_power+1) )
 
     nx.draw(G, with_labels=True, font_weight='bold')
     plt.show()
 
-    return create_graph_matrix(size, add_weight_to_edges(G.edges(), max_resistance)), circuit, list(G.edges()), G
+    return create_graph_matrix(size, add_weight_to_edges(G.edges(), max_resistance)), circuit, list(G.edges())
 
 def add_weight_to_edges(edges, max_resistance):
     w_edges = []
@@ -92,9 +92,6 @@ def solver(G, C, E, m, n):
             S[ind][edge_map[cycle[0]][cycle[len(cycle) - 1]]] = -G[cycle[0]][cycle[len(cycle) - 1]]
         ind+=1
 
-    for r in S:
-        print(r)
-
     adj = [[] for _ in range(n)]
 
     for u, v in E:
@@ -114,7 +111,7 @@ def solver(G, C, E, m, n):
     B = np.array(B)
 
     solved = np.linalg.solve(A,B)
-    print(solved)
+
     solution = [[0 for _ in range(n)] for _ in range(n)]
 
     for i in range(n):
@@ -126,7 +123,7 @@ def solver(G, C, E, m, n):
     return solution
 
 
-def draw_solution_graph(G_orig, solution, circuit):
+def draw_solution_graph(solution, circuit):
     n = len(solution)
     start, end = circuit[0], circuit[1]
 
@@ -152,7 +149,7 @@ def draw_solution_graph(G_orig, solution, circuit):
     else:
         edge_colors = "black"
 
-    pos = nx.spring_layout(G_sol)
+    pos = nx.circular_layout(G_sol)
 
     plt.figure(figsize=(8, 6))
     nx.draw_networkx_edges(G_sol, pos, edge_color=edge_colors, arrows=True, arrowstyle='->', arrowsize=50)
@@ -171,16 +168,13 @@ def draw_solution_graph(G_orig, solution, circuit):
     edge_labels = {(u, v): round(data['weight'], 2) for u, v, data in G_sol.edges(data=True)}
     nx.draw_networkx_edge_labels(G_sol, pos, edge_labels=edge_labels)
 
-    plt.title("Solution Graph with Directed Edges and Colored by Weight")
+    plt.title("Computed Graph")
     plt.axis("off")
     plt.show()
 
-G_matrix, C, E, G_orig = create_graph("e", 10, 5, 15)
-solution = solver(G_matrix, C, E, len(E), 10)
+size = 10
+G_matrix, C, E = create_graph("e", size, size//2, size*3)
+solution = solver(G_matrix, C, E, len(E), size)
 
-print("Solution Matrix:")
-for row in solution:
-    print(row)
-
-draw_solution_graph(G_orig, solution, C)
+draw_solution_graph(solution, C)
 
