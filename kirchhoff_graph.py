@@ -172,9 +172,22 @@ def draw_solution_graph(solution, circuit):
     plt.axis("off")
     plt.show()
 
+def test_fun(solution, eps, start, end):
+    n = len(solution)
+    for i in range(n):
+        if i!=start and i!=end:
+            sum_of_currents=0
+            for j in range(n):
+                sum_of_currents += solution[i][j]
+            if sum_of_currents > abs(eps):
+                print("The solution is incorrect in node:", i)
+                return
+    print("The solution is correct")
+
 size = 10
 G_matrix, C, E = create_graph("e", size, size//2, size*3)
 solution = solver(G_matrix, C, E, len(E), size)
+test_fun(solution, 0.2, C[0], C[1])
 
 draw_solution_graph(solution, C)
 
